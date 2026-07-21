@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OminiSis Enterprise Platform</title>
+  <meta name="description" content="OminiSis Enterprise — Plataforma ERP SaaS completa com IA, CRM, BI, Workflow e muito mais." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css?v=12" />
+  <link rel="stylesheet" href="styles/sidebar.css?v=12" />
+  <link rel="stylesheet" href="styles/modules.css?v=12" />
+  <link rel="stylesheet" href="styles/charts.css?v=12" />
+</head>
+<body>
+  <!-- Splash Screen -->
+  <div id="splash-screen" class="splash-screen">
+    <div class="splash-content">
+      <div class="splash-logo">
+        <div class="splash-icon">
+          <!-- Logo Placeholder for Splash -->
+          <img src="logo.png" alt="OminiSis Logo" onerror="this.src='https://placehold.co/180x60/0070f2/ffffff?text=OS'" style="max-width:200px; height:auto;">
+        </div>
+        <div class="splash-brand" style="text-align: center; display:none;">
+          <!-- Hide the text brand since the logo already contains the text -->
+          <h1 style="font-size: 52px; font-weight: 700; letter-spacing: -1px; margin: 0; color: var(--text-primary);">OminiSis</h1>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 4px;">
+            <div style="height: 1px; background: var(--text-muted); width: 50px; opacity: 0.6;"></div>
+            <span style="font-size: 16px; letter-spacing: 8px; font-weight: 500; color: var(--text-secondary); margin-right: -8px;">ERP</span>
+            <div style="height: 1px; background: var(--text-muted); width: 50px; opacity: 0.6;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="splash-progress">
+        <div class="splash-bar">
+          <div class="splash-bar-fill" id="splash-bar-fill"></div>
+        </div>
+        <p class="splash-status" id="splash-status">Inicializando plataforma...</p>
+      </div>
+      <div class="splash-version">v4.2.1 · Build 2026.06</div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="app hidden">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-icon">
+            <!-- Logo Placeholder for Sidebar -->
+            <img src="logo-white.png" alt="OminiSis" onerror="this.src='https://placehold.co/150x50/2b303b/ffffff?text=OS'" style="width:160px; height:auto;">
+          </div>
+          <div class="brand-text" style="display: none; flex-direction: column; justify-content: center;">
+            <span class="brand-name" style="font-weight: 700; font-size: 18px; letter-spacing: -0.5px; color: #ffffff; line-height: 1;">OminiSis</span>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+              <div style="height: 1px; background: #ffffff; width: 14px; opacity: 0.6;"></div>
+              <span class="brand-version" style="font-size: 9px; letter-spacing: 3px; font-weight: 500; color: #ffffff; line-height: 1; margin-right: -3px;">ERP</span>
+              <div style="height: 1px; background: #ffffff; width: 14px; opacity: 0.6;"></div>
+            </div>
+          </div>
+        </div>
+        <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Recolher menu">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
+
+      <!-- Tenant Selector -->
+      <div class="tenant-selector">
+        <div class="tenant-avatar">A</div>
+        <div class="tenant-info">
+          <span class="tenant-name">Acme Corporation</span>
+          <span class="tenant-plan">Enterprise · Multi-Empresa</span>
+        </div>
+        <button class="tenant-switch-btn" title="Trocar empresa">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 15l5 5 5-5"/><path d="M7 9l5-5 5 5"/></svg>
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="sidebar-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Buscar módulo..." id="sidebar-search-input" />
+        <kbd>⌘K</kbd>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="sidebar-nav" id="sidebar-nav">
+        <div class="nav-section">
+          <span class="nav-section-label">Principal</span>
+          <a class="nav-item active" data-module="dashboard" id="nav-dashboard">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </span>
+            <span class="nav-label">Dashboard</span>
+            <span class="nav-badge nav-badge-ai">IA</span>
+          </a>
+          <a class="nav-item" data-module="ai-copilot" id="nav-ai">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2"/><path d="M12 8v4l3 3"/></svg>
+            </span>
+            <span class="nav-label">IA Copilot</span>
+            <span class="nav-badge nav-badge-new">Novo</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <span class="nav-section-label">CRM & Vendas</span>
+          <a class="nav-item" data-module="masterdata" id="nav-masterdata">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+            <span class="nav-label">Cadastros Base</span>
+          </a>
+          <a class="nav-item" data-module="crm" id="nav-crm">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            <span class="nav-label">CRM</span>
+          </a>
+          <a class="nav-item" data-module="sales" id="nav-sales">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+            <span class="nav-label">Vendas</span>
+          </a>
+          <a class="nav-item" data-module="purchase" id="nav-purchase">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
+            <span class="nav-label">Compras</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <span class="nav-section-label">Operações</span>
+          <a class="nav-item" data-module="inventory" id="nav-inventory">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+            <span class="nav-label">Estoque</span>
+          </a>
+          <a class="nav-item" data-module="production" id="nav-production">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
+            <span class="nav-label">Produção</span>
+          </a>
+          <a class="nav-item" data-module="quality" id="nav-quality">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></span>
+            <span class="nav-label">Qualidade</span>
+          </a>
+          <a class="nav-item" data-module="maintenance" id="nav-maintenance">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+            <span class="nav-label">Manutenção</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <span class="nav-section-label">Financeiro</span>
+          <a class="nav-item" data-module="finance" id="nav-finance">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+            <span class="nav-label">Financeiro</span>
+          </a>
+          <a class="nav-item" data-module="accounting" id="nav-accounting">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+            <span class="nav-label">Contabilidade</span>
+          </a>
+          <a class="nav-item" data-module="treasury" id="nav-treasury">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
+            <span class="nav-label">Tesouraria</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <span class="nav-section-label">Pessoas & Projetos</span>
+          <a class="nav-item" data-module="hr" id="nav-hr">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            <span class="nav-label">RH & Folha</span>
+          </a>
+          <a class="nav-item" data-module="projects" id="nav-projects">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+            <span class="nav-label">Projetos</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <span class="nav-section-label">Inteligência</span>
+          <a class="nav-item" data-module="bi" id="nav-bi">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+            <span class="nav-label">BI & Analytics</span>
+          </a>
+          <a class="nav-item" data-module="strategy" id="nav-strategy">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+            <span class="nav-label">Estratégia & OKRs</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <span class="nav-section-label">Plataforma</span>
+          <a class="nav-item" data-module="workflow" id="nav-workflow">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+            <span class="nav-label">Workflow</span>
+          </a>
+          <a class="nav-item" data-module="documents" id="nav-documents">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+            <span class="nav-label">ECM / GED</span>
+          </a>
+          <a class="nav-item" data-module="integrations" id="nav-integrations">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+            <span class="nav-label">Integrações</span>
+          </a>
+          <a class="nav-item" data-module="settings" id="nav-settings">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+            <span class="nav-label">Configurações</span>
+          </a>
+          <a class="nav-item" data-module="admin" id="nav-admin">
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            <span class="nav-label">Admin Console</span>
+            <span class="nav-badge nav-badge-admin">SA</span>
+          </a>
+        </div>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="system-health">
+          <div class="health-dot health-dot-ok"></div>
+          <span>Todos sistemas operacionais</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div class="breadcrumb" id="breadcrumb">
+            <span>OminiSis</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            <span id="breadcrumb-current">Dashboard</span>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="topbar-ai-status">
+            <div class="ai-pulse"></div>
+            <span>IA Ativa</span>
+          </div>
+          <button class="topbar-btn" id="theme-toggle-btn" title="Alternar Tema" style="display: none;">
+            <svg id="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <svg id="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </button>
+          <button class="topbar-btn" id="notifications-btn" title="Notificações">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-badge">7</span>
+          </button>
+          <button class="topbar-btn" title="Ajuda">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </button>
+          <div class="user-menu">
+            <div class="user-avatar">JD</div>
+            <div class="user-info">
+              <span class="user-name">João Doe</span>
+              <span class="user-role">Super Admin</span>
+            </div>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+      </header>
+
+      <!-- Module Content -->
+      <main class="content" id="content">
+        <!-- Modules loaded dynamically -->
+      </main>
+    </div>
+  </div>
+
+  <!-- Notification Panel -->
+  <div class="notification-panel" id="notification-panel">
+    <div class="notification-header">
+      <h3>Notificações</h3>
+      <button class="notif-close" id="notif-close">✕</button>
+    </div>
+    <div class="notification-list">
+      <div class="notif-item notif-unread">
+        <div class="notif-icon notif-icon-warning">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="notif-content">
+          <p class="notif-title">Pedido #4521 aguardando aprovação</p>
+          <p class="notif-time">há 5 minutos</p>
+        </div>
+      </div>
+      <div class="notif-item notif-unread">
+        <div class="notif-icon notif-icon-success">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="notif-content">
+          <p class="notif-title">Faturamento mensal gerado com sucesso</p>
+          <p class="notif-time">há 15 minutos</p>
+        </div>
+      </div>
+      <div class="notif-item notif-unread">
+        <div class="notif-icon notif-icon-info">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="notif-content">
+          <p class="notif-title">Estoque crítico: Produto A-4521 abaixo do mínimo</p>
+          <p class="notif-time">há 32 minutos</p>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-icon notif-icon-ai">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="notif-content">
+          <p class="notif-title">IA: Oportunidade de venda identificada - Cliente Beta Corp</p>
+          <p class="notif-time">há 1 hora</p>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-icon notif-icon-warning">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="notif-content">
+          <p class="notif-title">Manutenção preventiva: Máquina CNC-03 vence em 2 dias</p>
+          <p class="notif-time">há 2 horas</p>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-icon notif-icon-info">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+        <div class="notif-content">
+          <p class="notif-title">3 novos leads atribuídos via WhatsApp</p>
+          <p class="notif-time">há 3 horas</p>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-icon notif-icon-success">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        </div>
+        <div class="notif-content">
+          <p class="notif-title">PIX recebido: R$ 48.500,00 - Empresa XYZ</p>
+          <p class="notif-time">há 4 horas</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Modal Container -->
+  <div class="modal-overlay" id="modal-overlay" style="display:none;" onclick="if(event.target===this) hideAppModal()">
+    <div class="modal-box" id="modal-content">
+      <!-- Modal content injected here -->
+    </div>
+  </div>
+  <div id="print-area" class="print-only"></div>
+
+  <script src="js/data.js?v=6"></script>
+  <script src="js/charts.js?v=5"></script>
+  <script src="js/modules/dashboard.js?v=5"></script>
+  <script src="js/modules/cadastros.js?v=16"></script>
+  <script src="js/modules/crm.js?v=5"></script>
+  <script src="js/modules/sales.js?v=9"></script>
+  <script src="js/modules/purchase.js?v=8"></script>
+  <script src="js/modules/inventory.js?v=7"></script>
+  <script src="js/modules/production.js?v=6"></script>
+  <script src="js/modules/quality.js?v=5"></script>
+  <script src="js/modules/maintenance.js?v=5"></script>
+  <script src="js/modules/finance.js?v=5"></script>
+  <script src="js/modules/accounting.js?v=5"></script>
+  <script src="js/modules/treasury.js?v=5"></script>
+  <script src="js/modules/hr.js?v=5"></script>
+  <script src="js/modules/projects.js?v=5"></script>
+  <script src="js/modules/bi.js?v=5"></script>
+  <script src="js/modules/strategy.js?v=5"></script>
+  <script src="js/modules/workflow.js?v=5"></script>
+  <script src="js/modules/documents.js?v=5"></script>
+  <script src="js/modules/integrations.js?v=5"></script>
+  <script src="js/modules/settings.js?v=5"></script>
+  <script src="js/modules/admin.js?v=5"></script>
+  <script src="js/modules/ai-copilot.js?v=5"></script>
+  <script src="js/app.js?v=6"></script>
+</body>
+</html>

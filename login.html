@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - OminiSis Enterprise</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <style>
+    body {
+      background: var(--bg-base); /* Fiori light background */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    .login-container {
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      padding: 60px 40px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      border: 1px solid var(--border-default);
+    }
+    .login-logo {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .login-logo img {
+      width: 100%;
+      max-width: 240px;
+      height: auto;
+    }
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      gap: 16px;
+    }
+    .login-form label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .login-form input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 14px;
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      transition: border-color var(--trans-fast), box-shadow var(--trans-fast);
+    }
+    .login-form input:focus {
+      outline: none;
+      border-color: var(--brand-primary);
+      box-shadow: 0 0 0 3px rgba(0, 112, 242, 0.15);
+    }
+    .btn-login {
+      margin-top: 15px;
+      background: var(--brand-primary);
+      color: #ffffff;
+      border: none;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--trans-fast);
+    }
+    .btn-login:hover {
+      background: #0054b6;
+    }
+    .login-footer {
+      margin-top: 30px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .login-footer a {
+      color: var(--brand-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .login-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-logo">
+      <img src="logo.png" alt="OminiSis ERP Logo">
+    </div>
+
+    <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 13px; text-align: center;">
+      Entre com sua conta
+    </p>
+
+    <form class="login-form" action="index.html" method="GET">
+      <div>
+        <label for="email">E-mail</label>
+        <input type="email" id="email" value="admin@demo.com" required>
+      </div>
+      <div>
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" value="admin123" required>
+      </div>
+      <button type="submit" class="btn-login">Entrar</button>
+    </form>
+
+    <div class="login-footer">
+      <p>Ainda não tem conta? <a href="#">Cadastre sua empresa</a></p>
+      <p style="margin-top:12px; font-size:11px;">
+        Acesso demo: admin@demo.com / admin123<br>
+        (após executar o seed)
+      </p>
+    </div>
+  </div>
+
+</body>
+</html>
