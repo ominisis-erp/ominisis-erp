@@ -13,6 +13,7 @@ window.renderProduction = async () => {
       ops: data.productionOrders,
       machines: data.machines,
       products: data.products,
+      sectors: DATA.sectors || [],
       currentTab: 'machines',
       selectedBomProduct: data.products.length > 0 ? data.products[0].id : null
     };
@@ -102,6 +103,7 @@ window.renderProduction = async () => {
           <button class="tab-btn" onclick="prodTab('ops', this)">📋 Ordens de Produção (OP)</button>
           <button class="tab-btn" onclick="prodTab('products', this)">📦 Engenharia de Produtos</button>
           <button class="tab-btn" onclick="prodTab('mrp', this)" style="background: var(--primary-color); color: white; border-color: var(--primary-color);">📈 Planejamento (MRP)</button>
+          <button class="tab-btn" onclick="prodTab('terminal', this)" style="background: #111827; color: white; border-color: #111827;">📱 Terminal Operador</button>
         </div>
 
         <!-- Tab Contents -->
@@ -128,9 +130,8 @@ window.renderProduction = async () => {
 window.prodTab = (tabId, btnEl) => {
   document.querySelectorAll('#production-tabs .tab-btn').forEach(b => {
     b.classList.remove('active');
-    if (b.innerText.includes('MRP')) {
-      b.style.opacity = '0.9';
-    }
+    if (b.innerText.includes('MRP')) b.style.opacity = '0.9';
+    if (b.innerText.includes('Terminal')) b.style.opacity = '0.9';
   });
   btnEl.classList.add('active');
   window.productionState.currentTab = tabId;
@@ -141,6 +142,7 @@ window.prodTab = (tabId, btnEl) => {
   else if (tabId === 'ops') contentEl.innerHTML = renderOpsTab();
   else if (tabId === 'products') contentEl.innerHTML = renderProductsTab();
   else if (tabId === 'mrp') contentEl.innerHTML = renderMrpTab();
+  else if (tabId === 'terminal') contentEl.innerHTML = renderTerminalTab();
 };
 
 function renderMachinesTab() {
@@ -537,8 +539,257 @@ window.approveMrp = () => {
 };
 
 
-function renderOpsTab() {
-  const ops = window.productionState.ops;
+// ============================================================================
+// TERMINAL DO OPERADOR (SHOP FLOOR)
+// ============================================================================
+
+window.terminalState = {
+  machineId: null
+};
+
+window.renderTerminalTab = () => {
+  if (window.terminalState.machineId) {
+    return renderTerminalDashboard(window.terminalState.machineId);
+  }
+  
+  // Login Screen (Select Machine)
+  const sectors = window.productionState.sectors || [];
+  const machines = window.productionState.machines || [];
+  
+  return `
+    <div style="max-width:600px; margin: 40px auto; background: white; border-radius:12px; padding:40px; box-shadow:0 10px 25px rgba(0,0,0,0.05); text-align:center;">
+      <div style="font-size:48px; margin-bottom:20px;">📱</div>
+      <h2 style="margin-bottom:10px; font-size:24px;">Terminal do Operador</h2>
+      <p style="color:var(--text-muted); margin-bottom:30px;">Selecione o seu Centro de Trabalho para iniciar o turno.</p>
+      
+      <div style="text-align:left; margin-bottom:20px;">
+        <label style="display:block; margin-bottom:8px; font-weight:bold;">1. Selecione o Setor Fabril</label>
+        <select class="form-control" id="term-sector" style="padding:12px; font-size:16px;" onchange="updateTerminalMachineList()">
+          <option value="">-- Escolha --</option>
+          ${sectors.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+        </select>
+      </div>
+
+      <div style="text-align:left; margin-bottom:30px;">
+        <label style="display:block; margin-bottom:8px; font-weight:bold;">2. Selecione a Máquina</label>
+        <select class="form-control" id="term-machine" style="padding:12px; font-size:16px;">
+          <option value="">-- Escolha o setor primeiro --</option>
+        </select>
+      </div>
+      
+      <button class="btn btn-primary" style="width:100%; padding:15px; font-size:18px; border-radius:8px;" onclick="loginTerminal()">Acessar Painel</button>
+    </div>
+  `;
+};
+
+window.updateTerminalMachineList = () => {
+  const sectorId = document.getElementById('term-sector').value;
+  const machineSelect = document.getElementById('term-machine');
+  
+  if (!sectorId) {
+    machineSelect.innerHTML = '<option value="">-- Escolha o setor primeiro --</option>';
+    return;
+  }
+  
+  const filtered = window.productionState.machines.filter(m => m.sectorId === sectorId);
+  machineSelect.innerHTML = filtered.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+};
+
+window.loginTerminal = () => {
+  const machineId = document.getElementById('term-machine').value;
+  if (!machineId) return alert("Selecione uma máquina!");
+  
+  window.terminalState.machineId = machineId;
+  document.getElementById('prod-tab-content').innerHTML = renderTerminalTab();
+};
+
+window.logoutTerminal = () => {
+  window.terminalState.machineId = null;
+  document.getElementById('prod-tab-content').innerHTML = renderTerminalTab();
+};
+
+window.renderTerminalDashboard = (machineId) => {
+  const machine = window.productionState.machines.find(m => m.id === machineId);
+  const sector = window.productionState.sectors.find(s => s.id === machine.sectorId);
+  const allOps = window.productionState.ops;
+  
+  // Find running OP on this machine
+  const runningOp = allOps.find(op => op.status === 'em_execucao' && op.machine === machine.name);
+  // Find queued OPs
+  const queuedOps = allOps.filter(op => op.status === 'na_fila' && op.machine === machine.name);
+
+  return `
+    <div style="background:var(--bg-color); min-height:600px; border-radius:12px; overflow:hidden;">
+      <!-- Header -->
+      <div style="background:#111827; color:white; padding:20px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2 style="margin:0; font-size:24px;">${machine.name}</h2>
+          <div style="color:#9CA3AF; font-size:14px; margin-top:4px;">${sector ? sector.name : 'Setor Indefinido'} | Operador Logado</div>
+        </div>
+        <button class="btn" style="background:transparent; border:1px solid #4B5563; color:white;" onclick="logoutTerminal()">🚪 Sair</button>
+      </div>
+      
+      <div style="padding:20px; display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
+        
+        <!-- OP Atual / Ações -->
+        <div>
+          ${runningOp ? `
+            <div style="background:white; border-radius:12px; padding:30px; box-shadow:0 4px 6px rgba(0,0,0,0.05); text-align:center;">
+              <div style="display:inline-block; padding:6px 12px; background:var(--warning-light); color:var(--warning-dark); border-radius:20px; font-weight:bold; font-size:14px; margin-bottom:15px;">EM EXECUÇÃO</div>
+              <h1 style="margin:0 0 10px 0; font-size:32px;">${runningOp.id}</h1>
+              <p style="font-size:18px; color:var(--text-muted); margin-bottom:30px;">${runningOp.product}</p>
+              
+              <div style="display:flex; justify-content:center; gap:40px; margin-bottom:40px;">
+                <div style="text-align:center;">
+                  <div style="font-size:14px; color:var(--text-muted);">A Produzir</div>
+                  <div style="font-size:28px; font-weight:bold;">${runningOp.qty}</div>
+                </div>
+                <div style="text-align:center;">
+                  <div style="font-size:14px; color:var(--text-muted);">Boas</div>
+                  <div style="font-size:28px; font-weight:bold; color:var(--success-color);">${runningOp.goodQty || 0}</div>
+                </div>
+                <div style="text-align:center;">
+                  <div style="font-size:14px; color:var(--text-muted);">Refugo</div>
+                  <div style="font-size:28px; font-weight:bold; color:var(--danger-color);">${runningOp.scrapQty || 0}</div>
+                </div>
+              </div>
+              
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <button class="btn" style="padding:20px; font-size:18px; background:var(--primary-color); color:white; border:none; border-radius:8px;" onclick="termShowApontamento('${runningOp.id}')">📝 Apontar Peças</button>
+                <button class="btn" style="padding:20px; font-size:18px; background:#4B5563; color:white; border:none; border-radius:8px;" onclick="termPauseOp('${runningOp.id}')">⏸️ Pausar OP</button>
+                <button class="btn" style="padding:20px; font-size:18px; background:var(--danger-color); color:white; border:none; border-radius:8px;" onclick="termFinishOp('${runningOp.id}')">⚠️ Reportar Quebra</button>
+                <button class="btn" style="padding:20px; font-size:18px; background:var(--success-color); color:white; border:none; border-radius:8px;" onclick="termFinishOp('${runningOp.id}')">✅ Concluir Lote</button>
+              </div>
+            </div>
+          ` : `
+            <div style="background:white; border-radius:12px; padding:60px 30px; box-shadow:0 4px 6px rgba(0,0,0,0.05); text-align:center; height:100%; display:flex; flex-direction:column; justify-content:center;">
+              <div style="font-size:64px; margin-bottom:20px; color:var(--border-color);">💤</div>
+              <h2 style="color:var(--text-muted);">Nenhuma OP em execução</h2>
+              <p style="color:var(--text-muted); margin-bottom:30px;">Selecione uma OP na fila ao lado para iniciar a máquina.</p>
+            </div>
+          `}
+        </div>
+        
+        <!-- Fila de OPs -->
+        <div style="background:white; border-radius:12px; padding:20px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+          <h3 style="margin-top:0; margin-bottom:20px; font-size:18px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">Fila de OPs (Próximas)</h3>
+          ${queuedOps.length > 0 ? queuedOps.map(op => `
+            <div style="border:1px solid var(--border-color); border-radius:8px; padding:15px; margin-bottom:15px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <strong style="font-size:16px;">${op.id}</strong>
+                <span style="font-size:14px; color:var(--text-muted);">${op.qty} un</span>
+              </div>
+              <div style="font-size:14px; color:var(--text-muted); margin-bottom:15px;">${op.product}</div>
+              <button class="btn btn-primary" style="width:100%; padding:10px;" onclick="termStartOp('${op.id}')" ${runningOp ? 'disabled style="opacity:0.5"' : ''}>
+                ▶️ Iniciar Esta OP
+              </button>
+            </div>
+          `).join('') : `
+            <div style="text-align:center; padding:30px; color:var(--text-muted);">
+              Fila vazia para esta máquina.
+            </div>
+          `}
+        </div>
+        
+      </div>
+    </div>
+  `;
+};
+
+// Ações do Terminal
+window.termStartOp = (opId) => {
+  const op = window.productionState.ops.find(o => o.id === opId);
+  if (op) {
+    op.status = 'em_execucao';
+    // Start OP event
+    addEventLog('Terminal Operador', `Iniciou a produção da OP ${op.id}.`);
+    document.getElementById('prod-tab-content').innerHTML = renderTerminalDashboard(window.terminalState.machineId);
+  }
+};
+
+window.termPauseOp = (opId) => {
+  const op = window.productionState.ops.find(o => o.id === opId);
+  if (op) {
+    const motivo = prompt("Motivo da pausa (Manutenção, Falta de Material, etc):");
+    if(motivo) {
+      op.status = 'na_fila'; // simplistic state for pause
+      addEventLog('Terminal Operador', `Pausou a OP ${op.id}. Motivo: ${motivo}`);
+      document.getElementById('prod-tab-content').innerHTML = renderTerminalDashboard(window.terminalState.machineId);
+    }
+  }
+};
+
+window.termFinishOp = (opId) => {
+  const op = window.productionState.ops.find(o => o.id === opId);
+  if (op && confirm(`Tem certeza que deseja concluir a OP ${op.id}?`)) {
+    op.status = 'concluida';
+    op.progress = 100;
+    addEventLog('Terminal Operador', `Concluiu a OP ${op.id} via Terminal.`);
+    document.getElementById('prod-tab-content').innerHTML = renderTerminalDashboard(window.terminalState.machineId);
+  }
+};
+
+window.termShowApontamento = (opId) => {
+  const op = window.productionState.ops.find(o => o.id === opId);
+  if(!op) return;
+  
+  const modalHtml = `
+    <div id="modal-term-apont" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center;">
+      <div style="background:white; border-radius:12px; padding:30px; width:400px; text-align:center;">
+        <h2 style="margin-top:0;">📝 Apontar Peças</h2>
+        <p style="color:var(--text-muted); margin-bottom:20px;">OP: ${op.id}</p>
+        
+        <div style="margin-bottom:20px; text-align:left;">
+          <label style="display:block; font-weight:bold; margin-bottom:5px;">Quantidade Boa (Aprovada)</label>
+          <input type="number" id="term-apont-good" class="form-control" style="font-size:24px; padding:15px; text-align:center;" value="0">
+        </div>
+        
+        <div style="margin-bottom:30px; text-align:left;">
+          <label style="display:block; font-weight:bold; margin-bottom:5px; color:var(--danger-color);">Quantidade Refugo (Defeito)</label>
+          <input type="number" id="term-apont-scrap" class="form-control" style="font-size:24px; padding:15px; text-align:center; border-color:var(--danger-color);" value="0">
+        </div>
+        
+        <div style="display:flex; gap:10px;">
+          <button class="btn" style="flex:1; padding:15px; font-size:16px; background:#E5E7EB; color:#374151;" onclick="document.getElementById('modal-term-apont').remove()">Cancelar</button>
+          <button class="btn btn-primary" style="flex:1; padding:15px; font-size:16px;" onclick="termSubmitApontamento('${opId}')">Salvar</button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+};
+
+window.termSubmitApontamento = (opId) => {
+  const op = window.productionState.ops.find(o => o.id === opId);
+  if(!op) return;
+  
+  const good = parseInt(document.getElementById('term-apont-good').value) || 0;
+  const scrap = parseInt(document.getElementById('term-apont-scrap').value) || 0;
+  
+  op.goodQty = (op.goodQty || 0) + good;
+  op.scrapQty = (op.scrapQty || 0) + scrap;
+  
+  const totalF = op.goodQty + op.scrapQty;
+  op.progress = Math.min(100, Math.round((totalF / op.qty) * 100));
+  
+  addEventLog('Terminal Operador', `Apontou ${good} peças boas e ${scrap} refugos na OP ${op.id}.`);
+  
+  // Fake update OEE for machine
+  const machine = window.productionState.machines.find(m => m.name === op.machine);
+  if(machine) {
+    if(scrap > 0) {
+      machine.oee.quality = Math.max(50, machine.oee.quality - 2); 
+    }
+  }
+
+  document.getElementById('modal-term-apont').remove();
+  document.getElementById('prod-tab-content').innerHTML = renderTerminalDashboard(window.terminalState.machineId);
+};
+
+
+ function renderOpsTab() {
+   const ops = window.productionState.ops;
   return `
     <div class="card">
       <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
