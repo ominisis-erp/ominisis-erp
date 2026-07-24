@@ -283,14 +283,14 @@ const DATA = {
 
   // Sales
   salesOrders: [
-    { id: 'PV-2024-001', client: 'TechBR Ltda', value: 45800, status: 'approved', date: '2024-06-01', seller: 'Lucas M.', items: 8 },
-    { id: 'PV-2024-002', client: 'Minas Comercial', value: 128500, status: 'pending', date: '2024-06-05', seller: 'Ana S.', items: 15 },
-    { id: 'PV-2024-003', client: 'Grupo Alfa', value: 73200, status: 'invoiced', date: '2024-06-08', seller: 'Pedro R.', items: 6 },
-    { id: 'PV-2024-004', client: 'Sul Distribuidora', value: 32100, status: 'cancelled', date: '2024-06-10', seller: 'Lucas M.', items: 3 },
-    { id: 'PV-2024-005', client: 'Constru Max', value: 215000, status: 'approved', date: '2024-06-12', seller: 'Carla T.', items: 22 },
-    { id: 'PV-2024-006', client: 'Agro Solutions', value: 89400, status: 'pending', date: '2024-06-15', seller: 'Ana S.', items: 9 },
-    { id: 'PV-2024-007', client: 'Med Equipamentos', value: 167800, status: 'invoiced', date: '2024-06-18', seller: 'Pedro R.', items: 18 },
-    { id: 'PV-2024-008', client: 'Logtech BR', value: 54300, status: 'approved', date: '2024-06-20', seller: 'Carla T.', items: 5 },
+    { id: 'PV-2024-001', client: 'TechBR Ltda', value: 45800, status: 'approved', date: '2024-06-01', seller: 'Lucas M.', items: 8, detailItems: [{ sku: 'BOMB-AGUA-PRO', qty: 25 }] },
+    { id: 'PV-2024-002', client: 'Minas Comercial', value: 128500, status: 'pending', date: '2024-06-05', seller: 'Ana S.', items: 15, detailItems: [{ sku: 'MAQ-CORTE-LASER', qty: 3 }, { sku: 'BOMB-AGUA-PRO', qty: 40 }] },
+    { id: 'PV-2024-003', client: 'Grupo Alfa', value: 73200, status: 'invoiced', date: '2024-06-08', seller: 'Pedro R.', items: 6, detailItems: [{ sku: 'MAQ-CORTE-LASER', qty: 1 }] },
+    { id: 'PV-2024-004', client: 'Sul Distribuidora', value: 32100, status: 'cancelled', date: '2024-06-10', seller: 'Lucas M.', items: 3, detailItems: [] },
+    { id: 'PV-2024-005', client: 'Constru Max', value: 215000, status: 'approved', date: '2024-06-12', seller: 'Carla T.', items: 22, detailItems: [{ sku: 'BOMB-AGUA-PRO', qty: 120 }, { sku: 'KIT-BOMBA-MANUT', qty: 50 }] },
+    { id: 'PV-2024-006', client: 'Agro Solutions', value: 89400, status: 'pending', date: '2024-06-15', seller: 'Ana S.', items: 9, detailItems: [{ sku: 'MAQ-CORTE-LASER', qty: 2 }] },
+    { id: 'PV-2024-007', client: 'Med Equipamentos', value: 167800, status: 'invoiced', date: '2024-06-18', seller: 'Pedro R.', items: 18, detailItems: [{ sku: 'BOMB-AGUA-PRO', qty: 85 }] },
+    { id: 'PV-2024-008', client: 'Logtech BR', value: 54300, status: 'approved', date: '2024-06-20', seller: 'Carla T.', items: 5, detailItems: [{ sku: 'KIT-BOMBA-MANUT', qty: 30 }] },
   ],
   quotations: [
     { id: 'ORC-2024-088', client: 'Nova Energia SA', value: 385000, validity: '2024-07-15', status: 'pending', seller: 'Lucas M.' },

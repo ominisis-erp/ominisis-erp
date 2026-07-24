@@ -101,6 +101,7 @@ window.renderProduction = async () => {
           <button class="tab-btn" onclick="prodTab('sectors', this)">🏭 Setores Fabris</button>
           <button class="tab-btn" onclick="prodTab('ops', this)">📋 Ordens de Produção (OP)</button>
           <button class="tab-btn" onclick="prodTab('products', this)">📦 Engenharia de Produtos</button>
+          <button class="tab-btn" onclick="prodTab('mrp', this)" style="background: var(--primary-color); color: white; border-color: var(--primary-color);">📈 Planejamento (MRP)</button>
         </div>
 
         <!-- Tab Contents -->
@@ -125,7 +126,12 @@ window.renderProduction = async () => {
 };
 
 window.prodTab = (tabId, btnEl) => {
-  document.querySelectorAll('#production-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#production-tabs .tab-btn').forEach(b => {
+    b.classList.remove('active');
+    if (b.innerText.includes('MRP')) {
+      b.style.opacity = '0.9';
+    }
+  });
   btnEl.classList.add('active');
   window.productionState.currentTab = tabId;
   
@@ -134,6 +140,7 @@ window.prodTab = (tabId, btnEl) => {
   else if (tabId === 'sectors') contentEl.innerHTML = renderSectorsTab();
   else if (tabId === 'ops') contentEl.innerHTML = renderOpsTab();
   else if (tabId === 'products') contentEl.innerHTML = renderProductsTab();
+  else if (tabId === 'mrp') contentEl.innerHTML = renderMrpTab();
 };
 
 function renderMachinesTab() {
@@ -273,6 +280,262 @@ function renderProductsTab() {
     </div>
   `;
 }
+
+// ============================================================================
+// MRP (Material Requirements Planning)
+// ============================================================================
+
+window.mrpState = {
+  lastRun: null,
+  demands: [],
+  plannedOrders: [],
+  purchaseReqs: []
+};
+
+window.renderMrpTab = () => {
+  if (!window.mrpState.lastRun) {
+    return `
+      <div class="card" style="text-align:center; padding: 50px 20px;">
+        <div style="font-size:48px; margin-bottom:20px;">⚙️</div>
+        <h2 style="margin-bottom:10px;">Simulador de Planejamento (MRP)</h2>
+        <p style="color:var(--text-muted); max-width:600px; margin:0 auto 30px auto; line-height:1.5;">
+          O MRP irá analisar todos os Pedidos de Venda Aprovados e Pendentes, cruzar as quantidades com o estoque atual de produtos acabados, e fazer a explosão das Estruturas (BOM) para sugerir exatamente o que precisa ser fabricado e comprado.
+        </p>
+        <button class="btn btn-primary" style="font-size:16px; padding: 12px 30px;" onclick="runMrpSimulation()">▶️ Rodar Simulação MRP Agora</button>
+      </div>
+    `;
+  }
+  
+  return renderMrpResults();
+};
+
+window.runMrpSimulation = () => {
+  const masterProducts = window.productionState.products; // Includes FERT, HALB, ROH from data.js
+  const salesOrders = DATA.salesOrders.filter(so => so.status === 'approved' || so.status === 'pending');
+  
+  let demands = [];
+  let plannedOrders = [];
+  let purchaseReqs = [];
+  
+  // 1. Gather Gross Requirements from Sales Orders
+  let grossReqs = {};
+  salesOrders.forEach(so => {
+    if (so.detailItems) {
+      so.detailItems.forEach(item => {
+        if (!grossReqs[item.sku]) grossReqs[item.sku] = 0;
+        grossReqs[item.sku] += item.qty;
+      });
+    }
+  });
+
+  // Track simulated stock adjustments during the MRP run
+  let simulatedStock = {};
+  masterProducts.forEach(p => {
+    simulatedStock[p.sku] = p.stock || 0;
+  });
+
+  // 2. Process Gross Requirements for FERT (Finished Goods)
+  for (const sku in grossReqs) {
+    const qtyNeeded = grossReqs[sku];
+    const prod = masterProducts.find(p => p.sku === sku);
+    if (!prod) continue;
+
+    demands.push({
+      sku: prod.sku,
+      name: prod.name,
+      grossDemand: qtyNeeded,
+      stock: simulatedStock[sku]
+    });
+
+    const netRequirement = qtyNeeded - simulatedStock[sku];
+    
+    if (netRequirement > 0) {
+      // Need to produce FERT
+      plannedOrders.push({
+        sku: prod.sku,
+        name: prod.name,
+        qty: netRequirement,
+        type: prod.type,
+        parent: 'Vendas'
+      });
+      // Simulate production completing (we get the stock)
+      simulatedStock[sku] += netRequirement;
+      
+      // 3. Explode BOM for FERT
+      explodeBOM(prod, netRequirement, plannedOrders, purchaseReqs, simulatedStock, masterProducts);
+    } else {
+      // We have enough stock to cover demand
+      simulatedStock[sku] -= qtyNeeded;
+    }
+  }
+
+  // 4. Save state and re-render
+  window.mrpState = {
+    lastRun: new Date().toLocaleString(),
+    demands,
+    plannedOrders,
+    purchaseReqs
+  };
+
+  const contentEl = document.getElementById('prod-tab-content');
+  contentEl.innerHTML = renderMrpResults();
+};
+
+function explodeBOM(parentProd, qtyToProduce, plannedOrders, purchaseReqs, simulatedStock, masterProducts) {
+  if (!parentProd.bom || parentProd.bom.length === 0) return;
+
+  parentProd.bom.forEach(bomItem => {
+    const requiredQty = bomItem.qty * qtyToProduce;
+    const compProd = masterProducts.find(p => p.sku === bomItem.itemSku);
+    if (!compProd) return;
+
+    const currentStock = simulatedStock[compProd.sku] || 0;
+    const netReq = requiredQty - currentStock;
+
+    if (netReq > 0) {
+      if (compProd.type === 'HALB') {
+        // Need to produce Subassembly
+        plannedOrders.push({
+          sku: compProd.sku,
+          name: compProd.name,
+          qty: netReq,
+          type: compProd.type,
+          parent: parentProd.sku
+        });
+        simulatedStock[compProd.sku] += netReq;
+        // Recursive explosion
+        explodeBOM(compProd, netReq, plannedOrders, purchaseReqs, simulatedStock, masterProducts);
+      } else if (compProd.type === 'ROH' || compProd.type === 'RAW') {
+        // Need to purchase Raw Material
+        // Aggregate if already exists
+        const existingReq = purchaseReqs.find(r => r.sku === compProd.sku);
+        if (existingReq) {
+          existingReq.qty += netReq;
+          if (!existingReq.parents.includes(parentProd.sku)) existingReq.parents.push(parentProd.sku);
+        } else {
+          purchaseReqs.push({
+            sku: compProd.sku,
+            name: compProd.name,
+            qty: netReq,
+            unit: compProd.unit,
+            supplier: compProd.suppliers && compProd.suppliers.length > 0 ? DATA.suppliers.find(s=>s.id===compProd.suppliers[0])?.name || 'N/D' : 'Sem Fornecedor',
+            parents: [parentProd.sku]
+          });
+        }
+        simulatedStock[compProd.sku] += netReq;
+      }
+    } else {
+      // Consume stock
+      simulatedStock[compProd.sku] -= requiredQty;
+    }
+  });
+}
+
+window.renderMrpResults = () => {
+  const state = window.mrpState;
+  
+  return `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <div>
+        <h2 style="margin:0; font-size:20px;">Relatório da Simulação MRP</h2>
+        <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">Última execução: ${state.lastRun}</div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-ghost" onclick="runMrpSimulation()">🔄 Rodar Novamente</button>
+        <button class="btn btn-primary" onclick="approveMrp()">✅ Efetivar Plano (Aprovar)</button>
+      </div>
+    </div>
+    
+    <!-- DEMANDS -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header"><h3 class="card-title">1. Demanda Bruta (Pedidos de Venda) x Estoque FERT</h3></div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:left;">Produto Acabado (SKU)</th>
+              <th style="text-align:center;">Demanda Bruta (PVs)</th>
+              <th style="text-align:center;">Estoque Atual</th>
+              <th style="text-align:center;">Necessidade Líquida</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${state.demands.length > 0 ? state.demands.map(d => {
+              const net = Math.max(0, d.grossDemand - d.stock);
+              return `
+                <tr>
+                  <td><strong>${d.sku}</strong><br><span style="font-size:11px; color:var(--text-muted)">${d.name}</span></td>
+                  <td style="text-align:center;">${d.grossDemand}</td>
+                  <td style="text-align:center;">${d.stock}</td>
+                  <td style="text-align:center; font-weight:bold; color:${net > 0 ? 'var(--danger-color)' : 'var(--success-color)'}">${net > 0 ? net : '0 (Atendido)'}</td>
+                </tr>
+              `;
+            }).join('') : `<tr><td colspan="4" style="text-align:center;">Nenhuma demanda encontrada.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- PLANNED ORDERS -->
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">2. Ordens de Produção Planejadas (FERT & HALB)</h3></div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="text-align:left;">Produzir (SKU)</th>
+                <th style="text-align:center;">Qtd Sugerida</th>
+                <th style="text-align:left;">Origem (Pai)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${state.plannedOrders.length > 0 ? state.plannedOrders.map(po => `
+                <tr>
+                  <td><strong>${po.sku}</strong> <span style="font-size:10px; padding:2px 4px; background:var(--bg-base); border-radius:4px; border:1px solid var(--border-color);">${po.type}</span></td>
+                  <td style="text-align:center; font-weight:bold;">${po.qty}</td>
+                  <td style="font-size:12px; color:var(--text-muted);">${po.parent}</td>
+                </tr>
+              `).join('') : `<tr><td colspan="3" style="text-align:center;">Estoque suficiente. Nenhuma produção sugerida.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- PURCHASE REQUISITIONS -->
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">3. Solicitações de Compra Planejadas (ROH)</h3></div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="text-align:left;">Comprar (Matéria-Prima)</th>
+                <th style="text-align:center;">Qtd Sugerida</th>
+                <th style="text-align:left;">Fornecedor Principal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${state.purchaseReqs.length > 0 ? state.purchaseReqs.map(pr => `
+                <tr>
+                  <td><strong>${pr.sku}</strong><br><span style="font-size:11px; color:var(--text-muted)">${pr.name}</span></td>
+                  <td style="text-align:center; font-weight:bold; color:var(--primary-color);">${pr.qty} ${pr.unit}</td>
+                  <td style="font-size:12px;">${pr.supplier}</td>
+                </tr>
+              `).join('') : `<tr><td colspan="3" style="text-align:center;">Estoque suficiente. Nenhuma compra sugerida.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+window.approveMrp = () => {
+  if (confirm("Você deseja transformar essa simulação em requisições reais no sistema? (Nesta versão protótipo, isso é apenas uma simulação visual)")) {
+    alert("MRP Efetivado com sucesso! As OPs planejadas foram geradas no PCP e as Requisições de Compra enviadas para o módulo de Suprimentos.");
+  }
+};
+
 
 function renderOpsTab() {
   const ops = window.productionState.ops;
